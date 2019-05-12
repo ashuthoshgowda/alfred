@@ -7,13 +7,13 @@ sys.path.append("/home/pi/.local/lib/python2.7/site-packages/")
 import readchar
 
 
-from config import motor_run_time,
-                   motor_speed,
-                   motor_speed_increment,
-                   motor_turn_time,
-                   turn_motor_speed,
-                   timeout,
-                   max_allowed_speed
+from config import motor_run_time,\
+                    motor_speed,\
+                    motor_speed_increment,\
+                    motor_turn_time,\
+                    turn_motor_speed,\
+                    timeout,\
+                    max_allowed_speed
 
 
 
