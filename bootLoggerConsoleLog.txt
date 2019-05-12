@@ -1,0 +1,4 @@
+Created log file - /home/pi/Log/bootLog_20190511225345.txt
+Created log file - /home/pi/Log/bootLog_20190511234637.txt
+Created log file - /home/pi/Log/bootLog_20190512000619.txt
+Created log file - /home/pi/Log/bootLog_20190512011705.txt
