@@ -1,24 +1,18 @@
 import time
 from dual_g2_hpmd_rpi import motors, MAX_SPEED
+
 import sys
 from select import select
-#clean this soon
 sys.path.append("/home/pi/.local/lib/python2.7/site-packages/")
 import readchar
 
-
-from config import motor_run_time,\
-                    motor_speed,\
-                    motor_speed_increment,\
-                    motor_turn_time,\
-                    turn_motor_speed,\
-                    timeout,\
-                    max_allowed_speed
-
-
-
-
-
+motor_run_time = 0.01
+motor_speed = 60
+motor_speed_increment = 60
+motor_turn_time = 0.01
+turn_motor_speed = 200
+timeout = 0.1
+max_allowed_speed = 400
 
 try:
     import tty, termios
@@ -31,6 +25,8 @@ except ImportError:
 try:
     motors.enable()
     while(True):
+
+
         rl, wl, xl = select([sys.stdin], [], [], timeout)
         if rl: # some input
             key = sys.stdin.read(1)
@@ -42,6 +38,7 @@ try:
             motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
             continue
+
         if(key=='w'):
             motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
@@ -75,3 +72,6 @@ finally:
   # or the user presses Ctrl+C to kill the process.
     motors.setSpeeds(0, 0)
     motors.disable()
+    if prev_flags != None:
+        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, prev_flags)
+    print("\rfinally executed")
