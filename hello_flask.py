@@ -38,15 +38,18 @@ def turn_right():
     motors.setSpeeds(0, 0)
     motors.disable()
 
-@route('/move',methods=['POST'])
-def turn_right():
-    print(request)
-    motors.enable()
-    if not disable_motor_flag:
-        motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
-    time.sleep(motor_turn_time*100)
-    motors.setSpeeds(0, 0)
-    motors.disable()
+@route('/move',methods=['POST','GET'])
+def move_forward():
+    print("hit forward with : {}".format(request))
+    if request.method == 'GET':
+        print("It's a GET")
+    elif request.method == 'POST':
+        motors.enable()
+        if not disable_motor_flag:
+            motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
+        time.sleep(motor_turn_time*100)
+        motors.setSpeeds(0, 0)
+        motors.disable()
 
 
 run(host='0.0.0.0', port=80)
