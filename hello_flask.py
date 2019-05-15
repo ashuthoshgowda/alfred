@@ -38,6 +38,7 @@ def turn_right():
     motors.setSpeeds(0, 0)
     motors.disable()
 
+<<<<<<< HEAD
 @route('/move',methods=['POST','GET'])
 def move_forward():
     print("hit forward with : {}".format(request))
@@ -50,6 +51,17 @@ def move_forward():
         time.sleep(motor_turn_time*100)
         motors.setSpeeds(0, 0)
         motors.disable()
+=======
+@route('/move',methods=['POST'])
+def move_forward(request):
+    print(request)
+    motors.enable()
+    if not disable_motor_flag:
+        motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
+    time.sleep(motor_turn_time*100)
+    motors.setSpeeds(0, 0)
+    motors.disable()
+>>>>>>> 1f9dfc0b736d3d32b3d10c226cd17ce8a57cd38f
 
 
 run(host='0.0.0.0', port=80)
