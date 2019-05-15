@@ -40,6 +40,7 @@ def turn_right():
 
 @route('/move',methods=['POST'])
 def move_forward(request):
+    print
     print(request)
     motors.enable()
     if not disable_motor_flag:
