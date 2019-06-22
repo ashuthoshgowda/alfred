@@ -1,5 +1,3 @@
-
-
 from config import motor_run_time,\
                     motor_speed,\
                     motor_speed_increment,\
@@ -27,6 +25,7 @@ import sys
 from select import select
 import tty, termios
 
+
 try:
 
 
@@ -39,6 +38,8 @@ try:
     if not disable_motor_flag:
         motors.enable()
     while(True):
+
+
         rl, wl, xl = select([sys.stdin], [], [], timeout)
         print("\r{}".format(rl))
         print("\r{}".format(wl))
@@ -55,6 +56,7 @@ try:
                 motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
             continue
+
         if(key=='w'):
             if not disable_motor_flag:
                 motors.setSpeeds(motor_speed, motor_speed)
