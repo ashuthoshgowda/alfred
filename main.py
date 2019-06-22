@@ -1,33 +1,21 @@
-from config import motor_run_time,\
-                    motor_speed,\
-                    motor_speed_increment,\
-                    motor_turn_time,\
-                    turn_motor_speed,\
-                    timeout,\
-                    max_allowed_speed,\
-                    disable_motor_flag
-
-movement_state = {
-                motor_run_time=motor_run_time,
-                motor_speed=motor_speed,
-                motor_speed_increment=motor_speed_increment,
-                motor_turn_time=motor_turn_time,
-                turn_motor_speed=turn_motor_speed,
-                timeout=timeout,
-                max_allowed_speed=max_allowed_speed,
-                disable_motor_flag=disable_motor_flag
-}
-
 import time
-if not disable_motor_flag:
-    from dual_g2_hpmd_rpi import motors, MAX_SPEED
+from dual_g2_hpmd_rpi import motors, MAX_SPEED
+
 import sys
 from select import select
-import tty, termios
+sys.path.append("/home/pi/.local/lib/python2.7/site-packages/")
+import readchar
 
+motor_run_time = 0.01
+motor_speed = 60
+motor_speed_increment = 60
+motor_turn_time = 0.01
+turn_motor_speed = 200
+timeout = 0.1
+max_allowed_speed = 400
 
 try:
-
+    import tty, termios
 
     prev_flags = termios.tcgetattr(sys.stdin.fileno())
     tty.setraw(sys.stdin.fileno())
@@ -35,47 +23,37 @@ except ImportError:
     prev_flags = None
 
 try:
-    if not disable_motor_flag:
-        motors.enable()
+    motors.enable()
     while(True):
 
 
         rl, wl, xl = select([sys.stdin], [], [], timeout)
-        print("\r{}".format(rl))
-        print("\r{}".format(wl))
-        print("\r{}".format(xl))
         if rl: # some input
             key = sys.stdin.read(1)
         else:
-            #auto brake
             if motor_speed > 0:
                 motor_speed -= motor_speed_increment
             elif motor_speed < 0:
                 motor_speed += motor_speed_increment
-            if not disable_motor_flag:
-                motors.setSpeeds(motor_speed, motor_speed)
+            motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
             continue
 
         if(key=='w'):
-            if not disable_motor_flag:
-                motors.setSpeeds(motor_speed, motor_speed)
+            motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
             if (motor_speed < max_allowed_speed):
                 motor_speed += motor_speed_increment
         elif(key=='s'):
             if (motor_speed > -max_allowed_speed):
                 motor_speed -= motor_speed_increment
-            if not disable_motor_flag:
-                motors.setSpeeds(motor_speed, motor_speed)
+            motors.setSpeeds(motor_speed, motor_speed)
             time.sleep(motor_run_time)
         elif(key=='d'):
-            if not disable_motor_flag:
-                motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
+            motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
             time.sleep(motor_turn_time)
         elif(key=='a'):
-            if not disable_motor_flag:
-                motors.setSpeeds(turn_motor_speed,-turn_motor_speed)
+            motors.setSpeeds(turn_motor_speed,-turn_motor_speed)
             time.sleep(motor_turn_time)
         elif(key=='q'):
             break
@@ -92,7 +70,8 @@ try:
 finally:
   # Stop the motors, even if there is an exception
   # or the user presses Ctrl+C to kill the process.
-    print("Process Quit")
-    if not disable_motor_flag:
-        motors.setSpeeds(0, 0)
-        motors.disable()
+    motors.setSpeeds(0, 0)
+    motors.disable()
+    if prev_flags != None:
+        termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, prev_flags)
+    print("\rfinally executed")
