@@ -58,9 +58,12 @@ if __name__ == '__main__':
 
         # Get current robot position
         x, y, theta = slam.getpos()
-        print(x,y,theta)
+        print("X : {x} , Y : {y},theta : {theta}".format(x=x,y=y,theta=theta))
+        print("Distances : {}".format(distances))
+        print("Angles : {}".format(angles))
+
         # Get current map bytes as grayscale
-        print(slam.getmap(mapbytes))
+        slam.getmap(mapbytes)
 
     # Shut down the lidar connection
     lidar.stop()
