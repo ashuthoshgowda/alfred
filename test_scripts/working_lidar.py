@@ -60,7 +60,7 @@ if __name__ == '__main__':
         x, y, theta = slam.getpos()
         print(x,y,theta)
         # Get current map bytes as grayscale
-        slam.getmap(mapbytes)
+        print(slam.getmap(mapbytes))
 
     # Shut down the lidar connection
     lidar.stop()
