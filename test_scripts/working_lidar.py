@@ -49,8 +49,8 @@ if __name__ == '__main__':
         # Update SLAM with current Lidar scan and scan angles if adequate
         if len(distances) > MIN_SAMPLES:
             slam.update(distances, scan_angles_degrees=angles)
-            previous_distances = distances.copy()
-            previous_angles    = angles.copy()
+            previous_distances = distances
+            previous_angles    = angles
 
         # If not adequate, use previous
         elif previous_distances is not None:

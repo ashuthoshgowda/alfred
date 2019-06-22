@@ -8,14 +8,14 @@ from config import motor_run_time,\
                     disable_motor_flag
 
 movement_state = {
-                "motor_run_time"=motor_run_time,
-                "motor_speed"=motor_speed,
-                "motor_speed_increment"=motor_speed_increment,
-                "motor_turn_time"=motor_turn_time,
-                "turn_motor_speed"=turn_motor_speed,
-                "timeout"=timeout,
-                "max_allowed_speed"=max_allowed_speed,
-                "disable_motor_flag"=disable_motor_flag
+                motor_run_time=motor_run_time,
+                motor_speed=motor_speed,
+                motor_speed_increment=motor_speed_increment,
+                motor_turn_time=motor_turn_time,
+                turn_motor_speed=turn_motor_speed,
+                timeout=timeout,
+                max_allowed_speed=max_allowed_speed,
+                disable_motor_flag=disable_motor_flag
 }
 
 import time
