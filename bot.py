@@ -96,10 +96,10 @@ class Bot(object):
         motors.setSpeeds(0, 0)
         motors.disable()
 
-    def read_keyboard_input():
-        rl, wl, xl = select([sys.stdin], [], [], timeout)
+    def read_keyboard_input(self):
+        rl, wl, xl = select([sys.stdin], [], [], self.timeout)
         if rl: # some input
             key = sys.stdin.read(1)
         else:
-            key = 0
+            key = 'b'
         return key

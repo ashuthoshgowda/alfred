@@ -25,7 +25,8 @@ try:
     motors.enable()
     while(True):
         key = Alfred.read_keyboard_input()
-
+        if(key=='b'):
+            Alfred.auto_brake()
         if(key=='w'):
             Alfred.move_forward()
         elif(key=='s'):
