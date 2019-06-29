@@ -29,7 +29,7 @@ def get_lidar_quit():
     return_val = lidar_quit_now
     mutex.release()
     return return_val
-    
+
 def set_lidar_quit(quit_bool):
     mutex.acquire()
     global lidar_quit_now
@@ -62,15 +62,15 @@ def lidar_sense(do_plot=False, record_lidar=False):
 
     # First scan is crap, so ignore it
     next(iterator)
-    
+
     img = [[0 for x in range(MAP_SIZE_PIXELS)] for y in range(MAP_SIZE_PIXELS)]
     iter_no = 0
-    
+
     if do_plot:
         plt.ion()
         plt.gray()
         plt.show()
-        
+
     ts = time.time()
     ts_str = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
     data_dir_name = os.path.join(os.getcwd(), "lidar_data")
@@ -105,9 +105,13 @@ def lidar_sense(do_plot=False, record_lidar=False):
 
             # Get current robot position
             x, y, theta = slam.getpos()
-            print("\rX : {x} , Y : {y},theta : {theta}".format(x=x,y=y,theta=theta))
-            print("\rDistances : {}".format(len(distances)))
-            print("\rAngles : {}".format(len(angles)))
+            print("\rX : {x} , Y : {y},theta : {theta}, \
+            Distances Sample Rate : {distance_sample_rate}, \
+            Angle Sample Rate : {angle_sample_rate}".format(x=x,
+                                                            y=y,
+                                                            theta=theta,
+                                                            distance_sample_rate =  len(distances),
+                                                            angle_sample_rate = len(angles)))
 
             # Get current map bytes as grayscale
             slam.getmap(mapbytes)
@@ -142,6 +146,6 @@ def lidar_sense(do_plot=False, record_lidar=False):
         lidar.stop_motor()
         lidar.stop()
         lidar.disconnect()
-        
+
         if record_lidar:
             data_file.close()
