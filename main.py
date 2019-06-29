@@ -3,8 +3,10 @@ from dual_g2_hpmd_rpi import motors, MAX_SPEED
 
 import sys
 from select import select
-sys.path.append("/home/pi/.local/lib/python2.7/site-packages/")
-import readchar
+from bot import Bot
+
+from working_lidar_aman import lidar_sense, set_lidar_quit
+from threading import Thread
 
 motor_run_time = 0.01
 motor_speed = 60
@@ -13,6 +15,8 @@ motor_turn_time = 0.01
 turn_motor_speed = 200
 timeout = 0.1
 max_allowed_speed = 400
+
+Alfred = Bot("Alfred")
 
 try:
     import tty, termios
@@ -23,44 +27,45 @@ except ImportError:
     prev_flags = None
 
 try:
+    lidar_quit_now=False
+    lidar_thread = Thread(target=lidar_sense, args=[False, True])
+    lidar_thread.start()
+    
+    stop_after_threshold = False
+    threshold = 10 #seconds
+    ts_start = time.time()
+
     motors.enable()
     while(True):
-
-
-        rl, wl, xl = select([sys.stdin], [], [], timeout)
-        if rl: # some input
-            key = sys.stdin.read(1)
-        else:
-            if motor_speed > 0:
-                motor_speed -= motor_speed_increment
-            elif motor_speed < 0:
-                motor_speed += motor_speed_increment
-            motors.setSpeeds(motor_speed, motor_speed)
-            time.sleep(motor_run_time)
-            continue
-
+        key = Alfred.read_keyboard_input()
+        
+        if lidar_thread.isAlive() == False:
+            raise ValueError("\rLidar thread quite unexpectedly, quitting...")
+            key = 'q'
+            
+        if stop_after_threshold:
+            if time.time() - ts_start >= 10:
+                print("\rThreshold time {} seconds passed, quitting now".\
+                    format(threshold))
+                key = 'q'
+            
+        if(key=='b'):
+            Alfred.auto_brake()
         if(key=='w'):
-            motors.setSpeeds(motor_speed, motor_speed)
-            time.sleep(motor_run_time)
-            if (motor_speed < max_allowed_speed):
-                motor_speed += motor_speed_increment
+            Alfred.move_forward()
         elif(key=='s'):
-            if (motor_speed > -max_allowed_speed):
-                motor_speed -= motor_speed_increment
-            motors.setSpeeds(motor_speed, motor_speed)
-            time.sleep(motor_run_time)
+            Alfred.move_back()
         elif(key=='d'):
-            motors.setSpeeds(-turn_motor_speed,turn_motor_speed)
-            time.sleep(motor_turn_time)
+            Alfred.turn_right()
         elif(key=='a'):
-            motors.setSpeeds(turn_motor_speed,-turn_motor_speed)
-            time.sleep(motor_turn_time)
+            Alfred.turn_left()
         elif(key=='q'):
+            set_lidar_quit(True)
             break
         if(key=='a' or key=='d'):
-            print("\r{}".format(turn_motor_speed))
+            print("\r{}".format(Alfred.turn_motor_speed))
         else:
-            print("\r{}".format(motor_speed))
+            print("\r{}".format(Alfred.motor_speed))
 
 
 
@@ -68,10 +73,13 @@ try:
 
 
 finally:
-  # Stop the motors, even if there is an exception
-  # or the user presses Ctrl+C to kill the process.
-    motors.setSpeeds(0, 0)
-    motors.disable()
+    # Stop the motors, even if there is an exception
+    # or the user presses Ctrl+C to kill the process.
+    Alfred.shut_motors()
+
     if prev_flags != None:
         termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, prev_flags)
-    print("\rfinally executed")
+    print("\r{} has shut it's motors".format(Alfred.name))
+
+    lidar_thread.join()
+        
