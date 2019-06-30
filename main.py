@@ -8,14 +8,9 @@ from bot import Bot
 from working_lidar_aman import lidar_sense, set_lidar_quit
 from threading import Thread
 
-motor_run_time = 0.01
-motor_speed = 60
-motor_speed_increment = 60
-motor_turn_time = 0.01
-turn_motor_speed = 200
-timeout = 0.1
-max_allowed_speed = 400
 
+stop_after_threshold = False
+threshold = 10 #seconds
 Alfred = Bot("Alfred")
 
 try:
@@ -27,45 +22,42 @@ except ImportError:
     prev_flags = None
 
 try:
-    lidar_quit_now=False
-    lidar_thread = Thread(target=lidar_sense, args=[False, True])
-    lidar_thread.start()
-    
-    stop_after_threshold = False
-    threshold = 10 #seconds
-    ts_start = time.time()
 
+    lidar_thread = Thread(target=Alfred.lidar_sense(do_plot=False, record_lidar=True))
+    lidar_thread.start()
+    ts_start = time.time()
     motors.enable()
     while(True):
         key = Alfred.read_keyboard_input()
-        
+
         if lidar_thread.isAlive() == False:
             raise ValueError("\rLidar thread quite unexpectedly, quitting...")
             key = 'q'
-            
+
         if stop_after_threshold:
             if time.time() - ts_start >= 10:
                 print("\rThreshold time {} seconds passed, quitting now".\
                     format(threshold))
                 key = 'q'
-            
+
         if(key=='b'):
             Alfred.auto_brake()
         if(key=='w'):
             Alfred.move_forward()
+            alfred_stats(Alfred.motor_speed)
         elif(key=='s'):
             Alfred.move_back()
+            alfred_stats(Alfred.motor_speed)
         elif(key=='d'):
             Alfred.turn_right()
+            alfred_stats(Alfred.turn_motor_speed)
         elif(key=='a'):
             Alfred.turn_left()
+            alfred_stats(Alfred.turn_motor_speed)
         elif(key=='q'):
-            set_lidar_quit(True)
+            Alfred.set_lidar_quit(True)
             break
-        if(key=='a' or key=='d'):
-            print("\r{}".format(Alfred.turn_motor_speed))
-        else:
-            print("\r{}".format(Alfred.motor_speed))
+
 
 
 
@@ -82,4 +74,3 @@ finally:
     print("\r{} has shut it's motors".format(Alfred.name))
 
     lidar_thread.join()
-        

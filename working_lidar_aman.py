@@ -36,6 +36,23 @@ def set_lidar_quit(quit_bool):
     lidar_quit_now = quit_bool
     mutex.release()
 
+def alfred_stats(x,
+                y,
+                theta,
+                distance_sample_rate,
+                angle_sample_rate,
+                alfred_speed):
+    print("\rX : {x} , Y : {y},theta : {theta}, \
+    Distances Sample Rate : {distance_sample_rate}, \
+    Angle Sample Rate : {angle_sample_rate}, \
+    Alfred Speed: {alfred_speed} ".format(x=x,
+                                        y=y,
+                                        theta=theta,
+                                        distance_sample_rate =  len(distances),
+                                        angle_sample_rate = len(angles),
+                                        alfred_speed = alfred_speed))
+    pass
+
 def lidar_sense(do_plot=False, record_lidar=False):
 
     # Connect to Lidar unit
@@ -105,19 +122,12 @@ def lidar_sense(do_plot=False, record_lidar=False):
 
             # Get current robot position
             x, y, theta = slam.getpos()
-            print("\rX : {x} , Y : {y},theta : {theta}, \
-            Distances Sample Rate : {distance_sample_rate}, \
-            Angle Sample Rate : {angle_sample_rate}".format(x=x,
-                                                            y=y,
-                                                            theta=theta,
-                                                            distance_sample_rate =  len(distances),
-                                                            angle_sample_rate = len(angles)))
 
-            # Get current map bytes as grayscale
-            slam.getmap(mapbytes)
-            #print("\r[MAP]{}".format(mapbytes))
+
 
             if do_plot or record_lidar:
+                # Get current map bytes as grayscale
+                slam.getmap(mapbytes)
                 for row_num in range(0, MAP_SIZE_PIXELS):
                     start = row_num * MAP_SIZE_PIXELS
                     end = start + MAP_SIZE_PIXELS
