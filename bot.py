@@ -17,7 +17,6 @@ from threading import Lock
 mutex = Lock()
 lidar_quit_now = False
 
-
 class Bot(object):
     """
     docstring for Bot
