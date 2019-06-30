@@ -1,6 +1,6 @@
 import time
 from dual_g2_hpmd_rpi import motors, MAX_SPEED
-import sys
+import sys, traceback
 from select import select
 import tty, termios
 
@@ -15,7 +15,7 @@ import os
 
 from threading import Lock
 mutex = Lock()
-
+lidar_quit_now = False
 
 
 class Bot(object):
@@ -86,6 +86,7 @@ class Bot(object):
         self.LIDAR_DEVICE = LIDAR_DEVICE
         self.MIN_SAMPLES = MIN_SAMPLES
 
+
     def move_forward(self):
         motors.setSpeeds(self.motor_speed, self.motor_speed)
         time.sleep(self.motor_run_time)
@@ -126,52 +127,47 @@ class Bot(object):
             key = 'b'
         return key
 
-    def get_lidar_quit():
+    def get_lidar_quit(self):
         mutex.acquire()
         global lidar_quit_now
         return_val = lidar_quit_now
         mutex.release()
         return return_val
 
-    def set_lidar_quit(quit_bool):
+    def set_lidar_quit(self, quit_bool):
         mutex.acquire()
         global lidar_quit_now
         lidar_quit_now = quit_bool
         mutex.release()
 
-    def alfred_stats(x,
-                    y,
-                    theta,
-                    distance_sample_rate,
-                    angle_sample_rate,
+    def alfred_stats(self,
                     alfred_speed):
         print("\rX : {x} , Y : {y},theta : {theta}, \
         Distances Sample Rate : {distance_sample_rate}, \
         Angle Sample Rate : {angle_sample_rate}, \
-        Alfred Speed: {alfred_speed} ".format(x=x,
-                                            y=y,
-                                            theta=theta,
-                                            distance_sample_rate =  len(distances),
-                                            angle_sample_rate = len(angles),
+        Alfred Speed: {alfred_speed} ".format(x=self.x,
+                                            y=self.y,
+                                            theta=self.theta,
+                                            distance_sample_rate =  len(self.distances),
+                                            angle_sample_rate = len(self.angles),
                                             alfred_speed = alfred_speed))
-        pass
 
-    def lidar_sense(do_plot=False, record_lidar=False):
+    def lidar_sense(self, do_plot=False, record_lidar=False):
 
         # Connect to Lidar unit
-        lidar = Lidar(LIDAR_DEVICE)
+        lidar = Lidar(self.LIDAR_DEVICE)
         lidar.start_motor()
         print("Lidar Info: {}".format(lidar.get_info()))
         print("Lidar health: {}".format(lidar.get_health()))
 
         # Create an RMHC SLAM object with a laser model and optional robot model
-        slam = RMHC_SLAM(LaserModel(), MAP_SIZE_PIXELS, MAP_SIZE_METERS)
+        slam = RMHC_SLAM(LaserModel(), self.MAP_SIZE_PIXELS, self.MAP_SIZE_METERS)
 
         # Initialize an empty trajectory
         trajectory = []
 
         # Initialize empty map
-        mapbytes = bytearray(MAP_SIZE_PIXELS * MAP_SIZE_PIXELS)
+        mapbytes = bytearray(self.MAP_SIZE_PIXELS * self.MAP_SIZE_PIXELS)
 
         # Create an iterator to collect scan data from the RPLidar
         iterator = lidar.iter_scans()
@@ -183,7 +179,7 @@ class Bot(object):
         # First scan is crap, so ignore it
         next(iterator)
 
-        img = [[0 for x in range(MAP_SIZE_PIXELS)] for y in range(MAP_SIZE_PIXELS)]
+        img = [[0 for x in range(self.MAP_SIZE_PIXELS)] for y in range(self.MAP_SIZE_PIXELS)]
         iter_no = 0
 
         if do_plot:
@@ -204,36 +200,35 @@ class Bot(object):
             data_file = open(data_file_name, 'w')
 
         try:
-            while get_lidar_quit() == False:
+            while self.get_lidar_quit() == False:
 
                 # Extract (quality, angle, distance) triples from current scan
                 items = [item for item in next(iterator)]
 
                 # Extract distances and angles from triples
-                distances = [item[2] for item in items]
-                angles    = [item[1] for item in items]
+                self.distances = [item[2] for item in items]
+                self.angles    = [item[1] for item in items]
 
                 # Update SLAM with current Lidar scan and scan angles if adequate
-                if len(distances) > MIN_SAMPLES:
-                    slam.update(distances, scan_angles_degrees=angles)
-                    previous_distances = distances
-                    previous_angles    = angles
+                if len(self.distances) > self.MIN_SAMPLES:
+                    slam.update(self.distances, scan_angles_degrees=self.angles)
+                    previous_distances = self.distances
+                    previous_angles    = self.angles
 
                 # If not adequate, use previous
                 elif previous_distances is not None:
                     slam.update(previous_distances, scan_angles_degrees=previous_angles)
 
                 # Get current robot position
-                x, y, theta = slam.getpos()
-
+                self.x, self.y, self.theta = slam.getpos()
 
 
                 if do_plot or record_lidar:
                     # Get current map bytes as grayscale
                     slam.getmap(mapbytes)
-                    for row_num in range(0, MAP_SIZE_PIXELS):
-                        start = row_num * MAP_SIZE_PIXELS
-                        end = start + MAP_SIZE_PIXELS
+                    for row_num in range(0, self.MAP_SIZE_PIXELS):
+                        start = row_num * self.MAP_SIZE_PIXELS
+                        end = start + self.MAP_SIZE_PIXELS
                         img[row_num] = mapbytes[start:end]
 
                 if do_plot:
@@ -245,13 +240,17 @@ class Bot(object):
                     if data_file is not None:
                         ts_cur_str = str(time.time())
                         #int.from_bytes(b, byteorder='big', signed=False)
-                        data_file.write(ts_cur_str + " Ds : {}".format(distances))
+                        data_file.write(ts_cur_str + " Ds : {}".format(self.distances))
                         data_file.write("\n")
-                        data_file.write(ts_cur_str + " As : {}".format(angles))
-                        data_file.write("\n")
-                        data_file.write("\n")
+                        data_file.write(ts_cur_str + " As : {}".format(self.angles))
+                        data_file.write("\n\n")
 
-        except:
+        except Exception as e:
+            exc_type, ex, tb = sys.exc_info()
+            imported_tb_info = traceback.extract_tb(tb)[-1]
+            line_number = imported_tb_info[1]
+            print_format = '{}: Exception in line: {}, message: {}'
+            print(print_format.format(exc_type.__name__, line_number, ex))
             print("\rSomething went wrong with the Lidar, quitting...")
 
         finally:

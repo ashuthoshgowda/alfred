@@ -1,7 +1,7 @@
 import time
 from dual_g2_hpmd_rpi import motors, MAX_SPEED
 
-import sys
+import sys, traceback
 from select import select
 from bot import Bot
 
@@ -23,15 +23,15 @@ except ImportError:
 
 try:
 
-    lidar_thread = Thread(target=Alfred.lidar_sense())
-    #lidar_thread.start()
+    lidar_thread = Thread(target=Alfred.lidar_sense, args=[False, True])
+    lidar_thread.start()
     ts_start = time.time()
     motors.enable()
     while(True):
         key = Alfred.read_keyboard_input()
 
         if lidar_thread.isAlive() == False:
-            raise ValueError("\rLidar thread quite unexpectedly, quitting...")
+            raise ValueError("\rLidar thread quit unexpectedly, quitting...")
             key = 'q'
 
         if stop_after_threshold:
@@ -44,25 +44,27 @@ try:
             Alfred.auto_brake()
         if(key=='w'):
             Alfred.move_forward()
-            alfred_stats(Alfred.motor_speed)
+            Alfred.alfred_stats(alfred_speed=Alfred.motor_speed)
         elif(key=='s'):
             Alfred.move_back()
-            alfred_stats(Alfred.motor_speed)
+            Alfred.alfred_stats(alfred_speed=Alfred.motor_speed)
         elif(key=='d'):
             Alfred.turn_right()
-            alfred_stats(Alfred.turn_motor_speed)
+            Alfred.alfred_stats(alfred_speed=Alfred.turn_motor_speed)
         elif(key=='a'):
             Alfred.turn_left()
-            alfred_stats(Alfred.turn_motor_speed)
+            Alfred.alfred_stats(alfred_speed=Alfred.turn_motor_speed)
         elif(key=='q'):
             Alfred.set_lidar_quit(True)
             break
 
-
-
-
-
-
+except Exception as e:
+    exc_type, ex, tb = sys.exc_info()
+    imported_tb_info = traceback.extract_tb(tb)[-1]
+    line_number = imported_tb_info[1]
+    print_format = '{}: Exception in line: {}, message: {}'
+    print(print_format.format(exc_type.__name__, line_number, ex))
+    print("\rSomething went wrong with the Lidar, quitting...")
 
 finally:
     # Stop the motors, even if there is an exception
