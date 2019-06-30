@@ -23,8 +23,8 @@ except ImportError:
 
 try:
 
-    lidar_thread = Thread(target=Alfred.lidar_sense(do_plot=False, record_lidar=True))
-    lidar_thread.start()
+    lidar_thread = Thread(target=Alfred.lidar_sense())
+    #lidar_thread.start()
     ts_start = time.time()
     motors.enable()
     while(True):

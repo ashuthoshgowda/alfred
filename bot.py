@@ -156,7 +156,7 @@ class Bot(object):
                                             alfred_speed = alfred_speed))
         pass
 
-    def lidar_sense(do_plot, record_lidar):
+    def lidar_sense(do_plot=False, record_lidar=False):
 
         # Connect to Lidar unit
         lidar = Lidar(LIDAR_DEVICE)
