@@ -4,6 +4,20 @@ import sys
 from select import select
 import tty, termios
 
+from breezyslam.algorithms import RMHC_SLAM
+from breezyslam.sensors import RPLidarA1 as LaserModel
+from rplidar import RPLidar as Lidar
+
+import matplotlib.pyplot as plt
+import time
+import datetime
+import os
+
+from threading import Lock
+mutex = Lock()
+
+
+
 class Bot(object):
     """
     docstring for Bot
@@ -142,7 +156,7 @@ class Bot(object):
                                             alfred_speed = alfred_speed))
         pass
 
-    def lidar_sense(do_plot=False, record_lidar=False):
+    def lidar_sense(do_plot, record_lidar):
 
         # Connect to Lidar unit
         lidar = Lidar(LIDAR_DEVICE)
