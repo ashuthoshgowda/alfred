@@ -141,7 +141,7 @@ class Bot(object):
 
     def alfred_stats(self,
                     alfred_speed):
-        print("\rX : {x} , Y : {y},theta : {theta}, \
+        print("\rX : {x:.2f} , Y : {y:.2f},theta : {theta:.2f}, \
         Distances Sample Rate : {distance_sample_rate}, \
         Angle Sample Rate : {angle_sample_rate}, \
         Alfred Speed: {alfred_speed} ".format(x=self.x,
