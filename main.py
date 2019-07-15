@@ -17,13 +17,13 @@ try:
     import tty, termios
 
     prev_flags = termios.tcgetattr(sys.stdin.fileno())
-    tty.setraw(sys.stdin.fileno())
+    tty.setcbreak(sys.stdin.fileno())
 except ImportError:
     prev_flags = None
 
 try:
 
-    lidar_thread = Thread(target=Alfred.lidar_sense, args=[False, True])
+    lidar_thread = Thread(target=Alfred.lidar_sense, args=[False, False])
     lidar_thread.start()
     ts_start = time.time()
     motors.enable()

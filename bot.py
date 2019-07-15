@@ -64,11 +64,11 @@ class Bot(object):
                  name,
                  motor_run_time = 0.01,
                  motor_speed = 60,
-                 motor_speed_increment = 60,
+                 motor_speed_increment = 20,
                  motor_turn_time = 0.01,
-                 turn_motor_speed = 200,
+                 turn_motor_speed = 180,
                  timeout = 0.1,
-                 max_allowed_speed = 400,
+                 max_allowed_speed = 180,
                  MAP_SIZE_PIXELS = 500,
                  MAP_SIZE_METERS = 10,
                  LIDAR_DEVICE = '/dev/ttyUSB0',
@@ -142,7 +142,7 @@ class Bot(object):
 
     def alfred_stats(self,
                     alfred_speed):
-        print("\rX : {x} , Y : {y},theta : {theta}, \
+        print("X : {x} , Y : {y},theta : {theta}, \
         Distances Sample Rate : {distance_sample_rate}, \
         Angle Sample Rate : {angle_sample_rate}, \
         Alfred Speed: {alfred_speed} ".format(x=self.x,
