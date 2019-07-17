@@ -17,7 +17,6 @@ from threading import Lock
 mutex = Lock()
 lidar_quit_now = False
 
-
 class Bot(object):
     """
     docstring for Bot
@@ -142,6 +141,7 @@ class Bot(object):
 
     def alfred_stats(self,
                     alfred_speed):
+
         print("X : {x} , Y : {y},theta : {theta}, \
         Distances Sample Rate : {distance_sample_rate}, \
         Angle Sample Rate : {angle_sample_rate}, \
