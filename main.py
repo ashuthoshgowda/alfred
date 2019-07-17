@@ -6,8 +6,6 @@ from select import select
 from bot import Bot
 
 from working_lidar_aman import lidar_sense, set_lidar_quit
-from threading import Thread
-
 
 stop_after_threshold = False
 threshold = 10 #seconds
@@ -22,27 +20,25 @@ except ImportError:
     prev_flags = None
 
 try:
-
-    lidar_thread = Thread(target=Alfred.lidar_sense, args=[False, False])
-    lidar_thread.start()
+    Alfred.lidar_sense()
     ts_start = time.time()
     motors.enable()
     while(True):
         key = Alfred.read_keyboard_input()
 
-        if lidar_thread.isAlive() == False:
-            raise ValueError("\rLidar thread quit unexpectedly, quitting...")
+        if Alfred.lidar_sense_running() == False:
+            raise ValueError("Lidar sense thread quit unexpectedly, quitting...")
             key = 'q'
 
         if stop_after_threshold:
             if time.time() - ts_start >= 10:
-                print("\rThreshold time {} seconds passed, quitting now".\
+                print("Threshold time {} seconds passed, quitting now".\
                     format(threshold))
                 key = 'q'
 
         if(key=='b'):
             Alfred.auto_brake()
-        if(key=='w'):
+        elif(key=='w'):
             Alfred.move_forward()
             Alfred.alfred_stats(alfred_speed=Alfred.motor_speed)
         elif(key=='s'):
@@ -54,6 +50,8 @@ try:
         elif(key=='a'):
             Alfred.turn_left()
             Alfred.alfred_stats(alfred_speed=Alfred.turn_motor_speed)
+        elif(key=='r'):
+            Alfred.lidar_sense_reset()
         elif(key=='q'):
             Alfred.set_lidar_quit(True)
             break
@@ -64,7 +62,7 @@ except Exception as e:
     line_number = imported_tb_info[1]
     print_format = '{}: Exception in line: {}, message: {}'
     print(print_format.format(exc_type.__name__, line_number, ex))
-    print("\rSomething went wrong with the Lidar, quitting...")
+    print("Something went wrong with the Lidar, quitting...")
 
 finally:
     # Stop the motors, even if there is an exception
@@ -73,6 +71,4 @@ finally:
 
     if prev_flags != None:
         termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, prev_flags)
-    print("\r{} has shut it's motors".format(Alfred.name))
-
-    lidar_thread.join()
+    print("{} has shut it's motors".format(Alfred.name))

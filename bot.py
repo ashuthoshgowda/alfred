@@ -13,7 +13,7 @@ import time
 import datetime
 import os
 
-from threading import Lock
+from threading import Thread, Lock
 mutex = Lock()
 lidar_quit_now = False
 
@@ -153,6 +153,21 @@ class Bot(object):
                                             alfred_speed = alfred_speed))
 
     def lidar_sense(self, do_plot=False, record_lidar=False):
+        self.lidar_thread = Thread(target=self.__lidar_sense, args=[do_plot, record_lidar])
+        self.lidar_thread.start()
+
+    def lidar_sense_running(self):
+        return self.lidar_thread.isAlive()
+
+    def lidar_sense_reset(self):
+        print("Lidar reset - starting")
+        self.set_lidar_quit(True)
+        self.lidar_thread.join()
+        self.set_lidar_quit(False)
+        print("Lidar reset - finished")
+        self.lidar_sense()
+
+    def __lidar_sense(self, do_plot=False, record_lidar=False):
 
         # Connect to Lidar unit
         lidar = Lidar(self.LIDAR_DEVICE)
@@ -251,7 +266,7 @@ class Bot(object):
             line_number = imported_tb_info[1]
             print_format = '{}: Exception in line: {}, message: {}'
             print(print_format.format(exc_type.__name__, line_number, ex))
-            print("\rSomething went wrong with the Lidar, quitting...")
+            print("Something went wrong with the Lidar, quitting...")
 
         finally:
             # Shut down the lidar connection
