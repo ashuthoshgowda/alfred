@@ -53,13 +53,15 @@ try:
             Alfred.alfred_stats(alfred_speed=Alfred.turn_motor_speed)
         elif(key=='r'):
             Alfred.lidar_sense_reset()
-        elif(key=='q'):
-            Alfred.set_lidar_quit(True)
         elif(key=='f'):
             Alfred.fast_mode()
         elif(key=='e'):
             Alfred.easy_mode()
-        break
+        elif(key=='q'):
+            Alfred.set_lidar_quit(True)
+            break
+
+
 
 except Exception as e:
     exc_type, ex, tb = sys.exc_info()
