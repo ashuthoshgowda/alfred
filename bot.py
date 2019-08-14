@@ -136,6 +136,7 @@ class Bot(object):
         return key
 
     def fast_mode(self):
+        print("fast_mode")
         self.motor_speed = 180
         self.motor_speed_increment = 60
 

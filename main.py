@@ -24,8 +24,9 @@ try:
     ts_start = time.time()
     motors.enable()
     while(True):
-        key = Alfred.read_keyboard_input()
 
+        key = Alfred.read_keyboard_input()
+        print(key)
         if Alfred.lidar_sense_running() == False:
             raise ValueError("Lidar sense thread quit unexpectedly, quitting...")
             key = 'q'
