@@ -59,8 +59,7 @@ try:
             Alfred.fast_mode()
         elif(key=='e'):
             Alfred.easy_mode()
-
-            break
+        break
 
 except Exception as e:
     exc_type, ex, tb = sys.exc_info()

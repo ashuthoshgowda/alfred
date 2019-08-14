@@ -141,6 +141,7 @@ class Bot(object):
         self.motor_speed_increment = 60
 
     def easy_mode(self):
+        print("easy_mode") 
         self.motor_speed = 60
         self.motor_speed_increment = 20
 
