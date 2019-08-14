@@ -50,10 +50,19 @@ class Bot(object):
         * turn_left()
         * turn_right()
         * auto_brake()
+        * shut_motors()
         * read_keyboard_input()
+        * fast_mode()
+        * slow_mode()
         * record_motion_path()
 
     Slam Methods:
+        * get_lidar_quit()
+        * set_lidar_quit()
+        * alfred_stats()
+        * lidar_sense()
+        * lidar_sense_running()
+        * lidar_sense_reset()
         * record_map_data()
         * find_path()
         * go_to_path()
@@ -125,6 +134,14 @@ class Bot(object):
         else:
             key = 'b'
         return key
+
+    def fast_mode(self):
+        self.motor_speed = 180
+        self.motor_speed_increment = 60
+
+    def easy_mode(self):
+        self.motor_speed = 60
+        self.motor_speed_increment = 20
 
     def get_lidar_quit(self):
         mutex.acquire()

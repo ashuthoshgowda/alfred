@@ -54,6 +54,11 @@ try:
             Alfred.lidar_sense_reset()
         elif(key=='q'):
             Alfred.set_lidar_quit(True)
+        elif(key=='f'):
+            Alfred.fast_mode()
+        elif(key=='e'):
+            Alfred.easy_mode()
+
             break
 
 except Exception as e:
