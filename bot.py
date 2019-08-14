@@ -71,8 +71,8 @@ class Bot(object):
     def __init__(self,
                  name,
                  motor_run_time = 0.01,
-                 motor_speed = 60,
-                 motor_speed_increment = 20,
+                 motor_speed = 180,
+                 motor_speed_increment = 60,
                  motor_turn_time = 0.01,
                  turn_motor_speed = 180,
                  timeout = 0.1,
@@ -141,7 +141,7 @@ class Bot(object):
         self.motor_speed_increment = 60
 
     def easy_mode(self):
-        print("easy_mode") 
+        print("easy_mode")
         self.motor_speed = 60
         self.motor_speed_increment = 20
 
