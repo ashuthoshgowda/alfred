@@ -5,11 +5,9 @@ import sys, traceback
 from select import select
 from bot import Bot
 
-from working_lidar_aman import lidar_sense, set_lidar_quit
-
 stop_after_threshold = False
 threshold = 10 #seconds
-Alfred = Bot("Alfred")
+Alfred = Bot("Alfred", turn_motor_speed = 300)
 
 try:
     import tty, termios
@@ -26,7 +24,7 @@ try:
     while(True):
 
         key = Alfred.read_keyboard_input()
-        print(key)
+        #print(key)
         if Alfred.lidar_sense_running() == False:
             raise ValueError("Lidar sense thread quit unexpectedly, quitting...")
             key = 'q'
@@ -36,6 +34,7 @@ try:
                 print("Threshold time {} seconds passed, quitting now".\
                     format(threshold))
                 key = 'q'
+
 
         if(key=='b'):
             Alfred.auto_brake()
@@ -57,6 +56,12 @@ try:
             Alfred.fast_mode()
         elif(key=='e'):
             Alfred.easy_mode()
+        elif (key=='i'):
+            Alfred.print_image()
+        elif (key == 'x'):
+            Alfred.stop_motor()
+        elif (key == 'o'):
+            Alfred.start_motor()
         elif(key=='q'):
             Alfred.set_lidar_quit(True)
             break

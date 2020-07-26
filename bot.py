@@ -7,7 +7,8 @@ import tty, termios
 from breezyslam.algorithms import RMHC_SLAM
 from breezyslam.sensors import RPLidarA1 as LaserModel
 from rplidar import RPLidar as Lidar
-
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import time
 import datetime
@@ -66,6 +67,10 @@ class Bot(object):
         * record_map_data()
         * find_path()
         * go_to_path()
+        * print_image()
+        * start_motor()
+        * stop_motor()
+
 
     """
     def __init__(self,
@@ -76,7 +81,7 @@ class Bot(object):
                  motor_turn_time = 0.01,
                  turn_motor_speed = 180,
                  timeout = 0.1,
-                 max_allowed_speed = 180,
+                 max_allowed_speed = 380,
                  MAP_SIZE_PIXELS = 500,
                  MAP_SIZE_METERS = 10,
                  LIDAR_DEVICE = '/dev/ttyUSB0',
@@ -93,7 +98,9 @@ class Bot(object):
         self.MAP_SIZE_METERS = MAP_SIZE_METERS
         self.LIDAR_DEVICE = LIDAR_DEVICE
         self.MIN_SAMPLES = MIN_SAMPLES
-
+        self.lidar = Lidar(LIDAR_DEVICE)
+        # Create an RMHC SLAM object with a laser model and optional robot model
+        self.slam = RMHC_SLAM(LaserModel(), self.MAP_SIZE_PIXELS, self.MAP_SIZE_METERS)
 
     def move_forward(self):
         motors.setSpeeds(self.motor_speed, self.motor_speed)
@@ -158,6 +165,29 @@ class Bot(object):
         lidar_quit_now = quit_bool
         mutex.release()
 
+    def start_motor(self):
+        self.lidar.start_motor()
+
+    def stop_motor(self):
+        self.lidar.stop_motor()
+
+    def print_image(self):
+         # Initialize empty map
+        mapbytes = bytearray(self.MAP_SIZE_PIXELS * self.MAP_SIZE_PIXELS)
+        img = [[0 for x in range(self.MAP_SIZE_PIXELS)] for y in range(self.MAP_SIZE_PIXELS)]
+        self.slam.getmap(mapbytes)
+        for row_num in range(0, self.MAP_SIZE_PIXELS):
+            start = row_num * self.MAP_SIZE_PIXELS
+            end = start + self.MAP_SIZE_PIXELS
+            img[row_num] = mapbytes[start:end]
+        plt.ion()
+        plt.gray()
+        plt.imshow(img)
+        ts = time.time()
+        ts_str = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
+        plt.savefig('testIterData'+ ts_str +'.png')
+
+
     def alfred_stats(self,
                     alfred_speed):
 
@@ -189,22 +219,19 @@ class Bot(object):
     def __lidar_sense(self, do_plot=False, record_lidar=False):
 
         # Connect to Lidar unit
-        lidar = Lidar(self.LIDAR_DEVICE)
-        lidar.start_motor()
-        print("Lidar Info: {}".format(lidar.get_info()))
-        print("Lidar health: {}".format(lidar.get_health()))
+        print("Enter Lidar Sense")
+    
+        self.lidar.start_motor()
 
-        # Create an RMHC SLAM object with a laser model and optional robot model
-        slam = RMHC_SLAM(LaserModel(), self.MAP_SIZE_PIXELS, self.MAP_SIZE_METERS)
+        print("Lidar Info: {}".format(self.lidar.get_info()))
+        print("Lidar health: {}".format(self.lidar.get_health()))
+
 
         # Initialize an empty trajectory
         trajectory = []
 
-        # Initialize empty map
-        mapbytes = bytearray(self.MAP_SIZE_PIXELS * self.MAP_SIZE_PIXELS)
-
         # Create an iterator to collect scan data from the RPLidar
-        iterator = lidar.iter_scans()
+        iterator = self.lidar.iter_scans(1000)
 
         # We will use these to store previous scan in case current scan is inadequate
         previous_distances = None
@@ -212,14 +239,12 @@ class Bot(object):
 
         # First scan is crap, so ignore it
         next(iterator)
-
-        img = [[0 for x in range(self.MAP_SIZE_PIXELS)] for y in range(self.MAP_SIZE_PIXELS)]
         iter_no = 0
 
-        if do_plot:
-            plt.ion()
-            plt.gray()
-            plt.show()
+        # if do_plot:
+        #     plt.ion()
+        #     plt.gray()
+        #     plt.show()
 
         ts = time.time()
         ts_str = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
@@ -234,6 +259,7 @@ class Bot(object):
             data_file = open(data_file_name, 'w')
 
         try:
+            print("Entering Lidar Sense")
             while self.get_lidar_quit() == False:
 
                 # Extract (quality, angle, distance) triples from current scan
@@ -245,39 +271,36 @@ class Bot(object):
 
                 # Update SLAM with current Lidar scan and scan angles if adequate
                 if len(self.distances) > self.MIN_SAMPLES:
-                    slam.update(self.distances, scan_angles_degrees=self.angles)
+                    self.slam.update(self.distances, scan_angles_degrees=self.angles)
                     previous_distances = self.distances
                     previous_angles    = self.angles
 
                 # If not adequate, use previous
                 elif previous_distances is not None:
-                    slam.update(previous_distances, scan_angles_degrees=previous_angles)
+                    print("Not enough samples")
+                    self.slam.update(previous_distances, scan_angles_degrees=previous_angles)
 
                 # Get current robot position
-                self.x, self.y, self.theta = slam.getpos()
+                self.x, self.y, self.theta = self.slam.getpos()
 
 
-                if do_plot or record_lidar:
+                # if do_plot or record_lidar:
                     # Get current map bytes as grayscale
-                    slam.getmap(mapbytes)
-                    for row_num in range(0, self.MAP_SIZE_PIXELS):
-                        start = row_num * self.MAP_SIZE_PIXELS
-                        end = start + self.MAP_SIZE_PIXELS
-                        img[row_num] = mapbytes[start:end]
 
-                if do_plot:
-                    if iter_no % 100 == 0:
-                        plt.imshow(img)
-                        plt.draw()
-                        plt.pause(1)
-                elif record_lidar:
-                    if data_file is not None:
-                        ts_cur_str = str(time.time())
-                        #int.from_bytes(b, byteorder='big', signed=False)
-                        data_file.write(ts_cur_str + " Ds : {}".format(self.distances))
-                        data_file.write("\n")
-                        data_file.write(ts_cur_str + " As : {}".format(self.angles))
-                        data_file.write("\n\n")
+                # if do_plot:
+                #     if iter_no % 300 == 0:
+                #         plt.imshow(img)
+                #         plt.savefig('testIterData.png')
+                        # plt.draw()
+                        # plt.pause(1)
+                # elif record_lidar:
+                #     if data_file is not None:
+                #         ts_cur_str = str(time.time())
+                #         #int.from_bytes(b, byteorder='big', signed=False)
+                #         data_file.write(ts_cur_str + " Ds : {}".format(self.distances))
+                #         data_file.write("\n")
+                #         data_file.write(ts_cur_str + " As : {}".format(self.angles))
+                #         data_file.write("\n\n")
 
         except Exception as e:
             exc_type, ex, tb = sys.exc_info()
@@ -289,9 +312,9 @@ class Bot(object):
 
         finally:
             # Shut down the lidar connection
-            lidar.stop_motor()
-            lidar.stop()
-            lidar.disconnect()
+            self.lidar.stop_motor()
+            self.lidar.stop()
+            self.lidar.disconnect()
 
             if record_lidar:
                 data_file.close()
