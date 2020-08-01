@@ -130,6 +130,16 @@ class Bot(object):
         motors.setSpeeds(self.motor_speed, self.motor_speed)
         time.sleep(self.motor_run_time)
 
+    def turn_towards_theta(self, turn_theta):
+        print("Entered Auto Pilot Turning Mode")
+        current_theta = self.theta
+        while self.theta > current_theta + turn_theta + 20:
+            self.turn_left()
+            self.alfred_stats(alfred_speed=self.turn_motor_speed)
+        while self.theta < current_theta + turn_theta - 20:
+            self.turn_right()
+            self.alfred_stats(alfred_speed=self.turn_motor_speed)
+
     def shut_motors(self):
         motors.setSpeeds(0, 0)
         motors.disable()
@@ -141,6 +151,9 @@ class Bot(object):
         else:
             key = 'b'
         return key
+
+    def read_theta_from_keyboard(self):
+        return input("Enter the angle to move to")
 
     def fast_mode(self):
         print("fast_mode")
@@ -201,6 +214,13 @@ class Bot(object):
                                             angle_sample_rate = len(self.angles),
                                             alfred_speed = alfred_speed))
 
+    def print_distance_angle(self):
+        print("Distance Array {distances}".format(distances=self.distances))
+        print("Angle Array {angle}".format(angle=self.angles))
+        print(" The theta to turn towards is : " + str(self.angles[self.distances.index(max(self.distances))]))
+        self.turn_towards_theta(turn_theta=self.angles[self.distances.index(max(self.distances))])
+        pass
+
     def lidar_sense(self, do_plot=False, record_lidar=False):
         self.lidar_thread = Thread(target=self.__lidar_sense, args=[do_plot, record_lidar])
         self.lidar_thread.start()
@@ -220,7 +240,7 @@ class Bot(object):
 
         # Connect to Lidar unit
         print("Enter Lidar Sense")
-    
+
         self.lidar.start_motor()
 
         print("Lidar Info: {}".format(self.lidar.get_info()))

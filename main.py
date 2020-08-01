@@ -56,8 +56,13 @@ try:
             Alfred.fast_mode()
         elif(key=='e'):
             Alfred.easy_mode()
+        elif (key == 'k'):
+            theta = Alfred.read_theta_from_keyboard()
+            print("Theta value entered is " + theta)
+            Alfred.turn_towards_theta(int(theta, 10))
         elif (key=='i'):
             Alfred.print_image()
+            Alfred.print_distance_angle()
         elif (key == 'x'):
             Alfred.stop_motor()
         elif (key == 'o'):
