@@ -7,7 +7,7 @@ from bot import Bot
 
 stop_after_threshold = False
 threshold = 10 #seconds
-Alfred = Bot("Alfred", turn_motor_speed = 300)
+Alfred = Bot("Alfred")
 
 try:
     import tty, termios
