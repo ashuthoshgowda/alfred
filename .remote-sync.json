@@ -1,0 +1,17 @@
+{
+  "logger": {
+    "title": "Remote Sync"
+  },
+  "hostname": "192.168.1.32",
+  "username": "pi",
+  "password": "2353gang",
+  "transport": "scp",
+  "target": "/home/pi/alfred",
+  "ignore": [
+    ".remote-sync.json"
+  ],
+  "uploadOnSave": false,
+  "useAtomicWrites": false,
+  "deleteLocal": false,
+  "watch": []
+}

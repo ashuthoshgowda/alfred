@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import time
 import datetime
 import os
+from image_helper.ImageHelper import capture_image,save_image
 
 from threading import Thread, Lock
 mutex = Lock()
@@ -130,6 +131,7 @@ class Bot(object):
         motors.setSpeeds(self.motor_speed, self.motor_speed)
         time.sleep(self.motor_run_time)
 
+
     def turn_towards_theta(self, turn_theta):
         print("Entered Auto Pilot Turning Mode")
         current_theta = self.theta
@@ -186,19 +188,8 @@ class Bot(object):
 
     def print_image(self):
          # Initialize empty map
-        mapbytes = bytearray(self.MAP_SIZE_PIXELS * self.MAP_SIZE_PIXELS)
-        img = [[0 for x in range(self.MAP_SIZE_PIXELS)] for y in range(self.MAP_SIZE_PIXELS)]
-        self.slam.getmap(mapbytes)
-        for row_num in range(0, self.MAP_SIZE_PIXELS):
-            start = row_num * self.MAP_SIZE_PIXELS
-            end = start + self.MAP_SIZE_PIXELS
-            img[row_num] = mapbytes[start:end]
-        plt.ion()
-        plt.gray()
-        plt.imshow(img)
-        ts = time.time()
-        ts_str = datetime.datetime.fromtimestamp(ts).strftime('%Y%m%d%H%M%S')
-        plt.savefig('testIterData'+ ts_str +'.png')
+        room_image = capture_image(self.MAP_SIZE_PIXELS, self.MAP_SIZE_PIXELS, self.slam)
+        save_image(room_image)
 
 
     def alfred_stats(self,
@@ -219,7 +210,6 @@ class Bot(object):
         print("Angle Array {angle}".format(angle=self.angles))
         print(" The theta to turn towards is : " + str(self.angles[self.distances.index(max(self.distances))]))
         self.turn_towards_theta(turn_theta=self.angles[self.distances.index(max(self.distances))])
-        pass
 
     def lidar_sense(self, do_plot=False, record_lidar=False):
         self.lidar_thread = Thread(target=self.__lidar_sense, args=[do_plot, record_lidar])
